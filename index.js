@@ -1,11 +1,9 @@
-'use strict';
+'use strict'
 
-// Credits go to @tcolgate
+const Counter = require('prom-client').Counter
+const optional = require('optional')
 
-const Counter = require('prom-client').Counter;
-const optional = require('optional');
-
-const gc = optional('gc-stats');
+const gc = optional('gc-stats')
 
 const gcTypes = {
   0: 'Unknown',
@@ -14,57 +12,59 @@ const gcTypes = {
   3: 'ScavengeAndMarkSweepCompact',
   4: 'IncrementalMarking',
   8: 'WeakPhantom',
-  15: 'All',
-};
+  15: 'All'
+}
 
-const noop = () => {};
+const noop = () => {}
 
 module.exports = (registry, config = {}) => {
   if (typeof gc !== 'function') {
-    return noop;
+    return noop
   }
 
-  const registers = registry ? [registry] : undefined;
+  const registers = registry ? [registry] : undefined
 
-  const labelNames = ['gctype'];
+  const labelNames = ['gctype']
 
-  const namePrefix = config.prefix ? config.prefix : '';
+  const namePrefix = config.prefix ? config.prefix : ''
 
   const gcCount = new Counter({
     name: `${namePrefix}nodejs_gc_runs_total`,
     help: 'Count of total garbage collections.',
     labelNames,
-    registers,
-  });
+    registers
+  })
+
   const gcTimeCount = new Counter({
     name: `${namePrefix}nodejs_gc_pause_seconds_total`,
     help: 'Time spent in GC Pause in seconds.',
     labelNames,
-    registers,
-  });
+    registers
+  })
+
   const gcReclaimedCount = new Counter({
     name: `${namePrefix}nodejs_gc_reclaimed_bytes_total`,
     help: 'Total number of bytes reclaimed by GC.',
     labelNames,
-    registers,
-  });
+    registers
+  })
 
-  let started = false;
+  let started = false
 
   return () => {
     if (started !== true) {
-      started = true;
+      started = true
 
       gc().on('stats', stats => {
-        const gcType = gcTypes[stats.gctype];
+        const gcType = gcTypes[stats.gctype]
 
-        gcCount.labels(gcType).inc();
-        gcTimeCount.labels(gcType).inc(stats.pause / 1e9);
+        gcCount.labels(gcType).inc()
+        gcTimeCount.labels(gcType).inc(stats.pause / 1e9)
 
         if (stats.diff.usedHeapSize < 0) {
-          gcReclaimedCount.labels(gcType).inc(stats.diff.usedHeapSize * -1);
+          gcReclaimedCount.labels(gcType).inc(stats.diff.usedHeapSize * -1)
         }
-      });
+      })
     }
-  };
-};
+  }
+}

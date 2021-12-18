@@ -1,47 +1,47 @@
 /* eslint-env jest */
 
-'use strict';
+'use strict'
 
-const promRegister = require('prom-client').register;
-const PromRegistry = require('prom-client').Registry;
-const gcMetrics = require('./index');
+const promRegister = require('prom-client').register
+const PromRegistry = require('prom-client').Registry
+const gcMetrics = require('./index')
 
-jest.mock('gc-stats');
+jest.mock('gc-stats')
 
 afterEach(() => {
-  promRegister.clear();
-});
+  promRegister.clear()
+})
 
-test('register metrics', () => {
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(0);
+test('register metrics', async () => {
+  expect(await promRegister.getMetricsAsJSON()).toStrictEqual([])
 
-  gcMetrics();
+  gcMetrics()
 
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(3);
-});
+  expect(await promRegister.getMetricsAsJSON()).toHaveLength(3)
+})
 
-test('register metrics to custom register', () => {
-  const register = new PromRegistry();
+test('register metrics to custom register', async () => {
+  const register = new PromRegistry()
 
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(0);
-  expect(register.getMetricsAsJSON()).toHaveLength(0);
+  expect(await promRegister.getMetricsAsJSON()).toStrictEqual([])
+  expect(await register.getMetricsAsJSON()).toStrictEqual([])
 
-  gcMetrics(register);
+  gcMetrics(register)
 
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(0);
-  expect(register.getMetricsAsJSON()).toHaveLength(3);
-});
+  expect(await promRegister.getMetricsAsJSON()).toStrictEqual([])
+  expect(await register.getMetricsAsJSON()).toHaveLength(3)
+})
 
-test('include prefix', () => {
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(0);
+test('include prefix', async () => {
+  expect(await promRegister.getMetricsAsJSON()).toStrictEqual([])
 
-  gcMetrics(undefined, { prefix: 'prefix_' });
+  gcMetrics(undefined, { prefix: 'prefix_' })
 
-  expect(promRegister.getMetricsAsJSON()).toHaveLength(3);
+  expect(await promRegister.getMetricsAsJSON()).toHaveLength(3)
 
-  expect(promRegister.getMetricsAsJSON().map(metric => metric.name)).toEqual([
+  expect((await promRegister.getMetricsAsJSON()).map(metric => metric.name)).toEqual([
     'prefix_nodejs_gc_runs_total',
     'prefix_nodejs_gc_pause_seconds_total',
-    'prefix_nodejs_gc_reclaimed_bytes_total',
-  ]);
-});
+    'prefix_nodejs_gc_reclaimed_bytes_total'
+  ])
+})

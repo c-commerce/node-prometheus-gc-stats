@@ -4,13 +4,13 @@ workflows:
       - test:
           matrix:
             parameters:
-              node-version: ['6', '8', '10', '12', '14']
-              prom-client-version: ['10', '11', '12']
-            exclude:
-              - node-version: '6'
-                prom-client-version: '12'
+              node-version: ['12', '14']
+              prom-client-version: ['10', '11', '12', '13', '14']
+            # exclude:
+            #   - node-version: '6'
+            #     prom-client-version: '12'
 orbs:
-  node: circleci/node@4.0.0
+  node: circleci/node@16
 version: 2.1
 jobs:
   test:
@@ -24,16 +24,16 @@ jobs:
       - checkout
       - node/install:
           node-version: << parameters.node-version >>
-          install-npm: false
-          install-yarn: true
+          install-npm: true
+          install-yarn: false
       - node/install-packages:
-          pkg-manager: yarn
-          override-ci-command: yarn install --ignore-engines
-          cache-path: ~/.cache/yarn
+          pkg-manager: npm
+          override-ci-command: npm install
+          cache-path: ~/node_modules
           include-branch-in-cache-key: false
       - run:
           name: Install prom-client@<< parameters.prom-client-version >>
-          command: yarn add --dev prom-client@^<< parameters.prom-client-version >> --ignore-engines
+          command: npm i prom-client@^<< parameters.prom-client-version >> --ignore-engines
       - run:
           name: Test prom-client@<< parameters.prom-client-version >>
-          command: yarn test
+          command: npm test

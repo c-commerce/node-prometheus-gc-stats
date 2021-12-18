@@ -1,5 +1,12 @@
 {
-  "extends": ["simenb-base", "simenb-node", "simenb-jest"],
+  "extends": [
+    "plugin:node/recommended",
+    "standard"
+  ],
+  "plugins": ["jest"],
+  "env": {
+    "jest/globals": true
+  },
   "rules": {
     // Not supported in node 4
     "prefer-destructuring": "off"
